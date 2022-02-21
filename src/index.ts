@@ -1,5 +1,4 @@
-import _, { isNull, isUndefined } from "lodash";
-import {event} from "jquery";
+import _ from "lodash";
 
 type Canvas = {
     context: CanvasRenderingContext2D,
@@ -21,9 +20,6 @@ type Position = {
 type Icon = {
     position: Position;
     color: RGB;
-}
-
-type Config = {
 }
 
 class NumberHelper{
@@ -65,14 +61,9 @@ export class ANSIfy{
     private static readonly ANSI_CHAR_WIDTH: number = 14;
     private static readonly ANSI_CHAR_HEIGHT: number = 26;
 
-    private config: Config;
     private icons: Icon[];
 
-    constructor(config: Config){
-        const defaultConfig: Config = {
-        }
-
-        this.config = this.mergeDefaultConfig(config, defaultConfig);
+    constructor(){
         this.icons = [];
     }
 
@@ -92,21 +83,6 @@ export class ANSIfy{
         img.onerror = (err) => {
             alert("Error loading image: not found or URL has CORS rules.")
         }
-    }
-
-    private mergeDefaultConfig(config: Config, defaultConfig: Config): Config{
-        if(isNull(config) || isUndefined(config)){
-            return defaultConfig;
-        }
-
-        Object.keys(defaultConfig).forEach((key: string) => {
-            if (!config.hasOwnProperty(key)) {
-                //@ts-ignore
-                config[key] = defaultConfig[key];
-            }
-        });
-
-        return config;
     }
 
     private createTempCanvas(width: number, height: number): Canvas{
