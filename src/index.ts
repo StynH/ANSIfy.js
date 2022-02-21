@@ -103,7 +103,15 @@ export class ANSIfy{
 
     private processImage(canvas: Canvas): void{
         for(let y = 0; y < canvas.height; y += ANSIfy.ANSI_CHAR_HEIGHT){
+            if(y + ANSIfy.ANSI_CHAR_HEIGHT >= canvas.height){
+                continue;
+            }
+
             for(let x = 0; x < canvas.width; x += ANSIfy.ANSI_CHAR_WIDTH){
+                if(x + ANSIfy.ANSI_CHAR_WIDTH >= canvas.width){
+                    continue;
+                }
+
                 let icon = this.processBlock(x, y, canvas);
                 this.icons.push(icon);
             }
