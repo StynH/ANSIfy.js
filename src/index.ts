@@ -1,4 +1,8 @@
-import _ from "lodash";
+import _, {isNull, isUndefined} from "lodash";
+
+type Config = {
+    ignoreWhitespaces: boolean;
+}
 
 type Canvas = {
     context: CanvasRenderingContext2D,
@@ -61,10 +65,19 @@ export class ANSIfy{
     private static readonly ANSI_CHAR_WIDTH: number = 14;
     private static readonly ANSI_CHAR_HEIGHT: number = 26;
 
+    private static readonly BLOCK_CHAR: string = "▓";
+    private static readonly WHITESPACE_CHAR: string = "&nbsp;&nbsp;&nbsp;";
+
+    private config: Config;
     private icons: Icon[];
 
-    constructor(){
+    constructor(config: Config | undefined | null = undefined){
+        let defaultConfig: Config = {
+            ignoreWhitespaces: false
+        }
+
         this.icons = [];
+        this.config = this.mergeDefaultConfig(config, defaultConfig);
     }
 
     public run(imageUrl: string): void{
@@ -85,6 +98,21 @@ export class ANSIfy{
         }
     }
 
+    private mergeDefaultConfig(config: Config | undefined | null, defaultConfig: Config): Config{
+        if(isNull(config) || isUndefined(config)){
+            return defaultConfig;
+        }
+
+        Object.keys(defaultConfig).forEach((key: string) => {
+            if (!config.hasOwnProperty(key)) {
+                //@ts-ignore
+                config[key] = defaultConfig[key];
+            }
+        });
+
+        return config;
+    }
+
     private createTempCanvas(width: number, height: number): Canvas{
         const canvas = document.createElement('canvas');
         canvas.width = width;
@@ -103,12 +131,12 @@ export class ANSIfy{
 
     private processImage(canvas: Canvas): void{
         for(let y = 0; y < canvas.height; y += ANSIfy.ANSI_CHAR_HEIGHT){
-            if(y + ANSIfy.ANSI_CHAR_HEIGHT >= canvas.height){
+            if(y + ANSIfy.ANSI_CHAR_HEIGHT >= (canvas.height - ANSIfy.ANSI_CHAR_HEIGHT / 2)){
                 continue;
             }
 
             for(let x = 0; x < canvas.width; x += ANSIfy.ANSI_CHAR_WIDTH){
-                if(x + ANSIfy.ANSI_CHAR_WIDTH >= canvas.width){
+                if(x + ANSIfy.ANSI_CHAR_WIDTH >= (canvas.width -  ANSIfy.ANSI_CHAR_WIDTH / 2)){
                     continue;
                 }
 
@@ -160,9 +188,20 @@ export class ANSIfy{
                 previousY = icon.position.y;
             }
 
+            if(this.config.ignoreWhitespaces && this.iconIsWhitespace(icon)){
+                element.append(`<span>${ANSIfy.WHITESPACE_CHAR}</span>`);
+                return;
+            }
+
             const hexColor = ColorHelper.rgbToHex(icon.color.r, icon.color.g, icon.color.b);
-            const block = $(`<span style='color: ${hexColor}'>▓</span>`);
+            const block = $(`<span style='color: ${hexColor}'>${ANSIfy.BLOCK_CHAR}</span>`);
             element.append(block);
         });
+    }
+
+    private iconIsWhitespace(icon: Icon): boolean{
+        return icon.color.r === 255
+            && icon.color.g === 255
+            && icon.color.b === 255;
     }
 }

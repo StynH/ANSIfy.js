@@ -28,7 +28,9 @@
 <div class="output"></div>
 <script src="ansify.js"></script>
 <script>
-  const obj = new window.ANSIfy();
+  const obj = new window.ANSIfy({
+    ignoreWhitespaces: true
+  });
   $( "#submitUrl" ).on("click", ( event ) => {
     event.preventDefault();
     obj.run($("#imageUrl").val());
