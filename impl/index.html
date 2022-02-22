@@ -10,8 +10,12 @@
           integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
           crossorigin="anonymous"></script>
   <style>
+    .output{
+      font-family: monospace;
+    }
+
     span{
-      font-size: 12px;
+      font-size: 16px;
     }
 
     button{
@@ -28,9 +32,7 @@
 <div class="output"></div>
 <script src="ansify.js"></script>
 <script>
-  const obj = new window.ANSIfy({
-    ignoreWhitespaces: true
-  });
+  const obj = new window.ANSIfy();
   $( "#submitUrl" ).on("click", ( event ) => {
     event.preventDefault();
     obj.run($("#imageUrl").val());

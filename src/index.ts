@@ -2,6 +2,8 @@ import _, {isNull, isUndefined} from "lodash";
 
 type Config = {
     ignoreWhitespaces: boolean;
+    legacyStyle: boolean;
+    shading: boolean;
 }
 
 type Canvas = {
@@ -58,6 +60,9 @@ class ColorHelper{
         return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     }
 
+    static getBrightness(color: RGB): number{
+        return Math.round(((color.r * 299) + (color.g * 587) + (color.b * 114)) / 1000);
+    }
 }
 
 export class ANSIfy{
@@ -65,15 +70,20 @@ export class ANSIfy{
     private static readonly ANSI_CHAR_WIDTH: number = 14;
     private static readonly ANSI_CHAR_HEIGHT: number = 26;
 
-    private static readonly BLOCK_CHAR: string = "▓";
-    private static readonly WHITESPACE_CHAR: string = "&nbsp;&nbsp;&nbsp;";
+    private static readonly BLOCK_CHAR: string = "█";
+    private static readonly BLOCK_SHADOW_CHAR: string = "▓";
+    private static readonly WHITESPACE_CHAR: string = "&nbsp;";
+
+    private static readonly BRIGHTNESS_THRESHOLD = 125;
 
     private config: Config;
     private icons: Icon[];
 
     constructor(config: Config | undefined | null = undefined){
         let defaultConfig: Config = {
-            ignoreWhitespaces: false
+            ignoreWhitespaces: false,
+            legacyStyle: false,
+            shading: false
         }
 
         this.icons = [];
@@ -194,9 +204,19 @@ export class ANSIfy{
             }
 
             const hexColor = ColorHelper.rgbToHex(icon.color.r, icon.color.g, icon.color.b);
+            if(this.config.shading && this.iconIsShade(icon) || this.config.legacyStyle){
+                const block = $(`<span style='color: ${hexColor}'>${ANSIfy.BLOCK_SHADOW_CHAR}</span>`);
+                element.append(block);
+                return;
+            }
+
             const block = $(`<span style='color: ${hexColor}'>${ANSIfy.BLOCK_CHAR}</span>`);
             element.append(block);
         });
+    }
+
+    private iconIsShade(icon: Icon): boolean{
+        return ColorHelper.getBrightness(icon.color) <= ANSIfy.BRIGHTNESS_THRESHOLD;
     }
 
     private iconIsWhitespace(icon: Icon): boolean{
